@@ -1,0 +1,47 @@
+// 数据模型定义
+package db
+
+// 标签模型
+type Tag struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// 创建标签请求
+type TagCreateRequest struct {
+	Name      string  `json:"name" required:"true"`
+	Channels []int64 `json:"channels" required:"true"`
+}
+
+// 标签列表响应体
+type TagResponse struct {
+	Id       int64   `json:"id"`
+	Name     string  `json:"name"`
+	Channels []int64 `json:"channels"`
+}
+
+// 频道模型
+type Channel struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// 创建频道请求
+type ChannelCreateRequest struct {
+	Name string  `json:"name" required:"true"`
+	Tags []int64 `json:"tags"`
+}
+
+// 更新频道请求
+type ChannelUpdateRequest struct {
+	Id   int64   `json:"id" required:"true"`
+	Name string  `json:"name" required:"true"`
+	Tags []int64 `json:"tags"`
+}
+
+// 获取频道响应
+type ChannelResponse struct {
+	Id   int64   `json:"id"`
+	Name string  `json:"name"`
+	Tags []int64 `json:"tags"`
+}

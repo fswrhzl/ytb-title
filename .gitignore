@@ -1,0 +1,10 @@
+/.history
+/.vscode
+/web/dist
+/web/data
+/web/.vscode
+/web/.gitignore
+/web/.prettierrc
+/web/README.md
+API 列表.txt
+todo.txt

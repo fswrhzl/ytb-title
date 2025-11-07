@@ -1,0 +1,31 @@
+# 该文件中的相对路径设置都是以该文件所在的目录为起点
+root = "." # 项目根目录
+tmp_dir = "server/tmp" # air存放临时文件的目录
+
+[build]
+  bin = "server\\tmp\\main.exe" # 编译生成的二进制文件路径
+  cmd = "cd server && go build -o ./tmp/main.exe ." # 编译命令
+  delay = 2000 # 保存延迟（毫秒），代码修改后多久才会触发保存，避免频繁修改导致的频繁保存
+  exclude_dir = ["web", ".history"] # 不需要监视的目录
+  exclude_file = [] # 不需要监视的文件
+  exclude_regex = ["_test.go"] # 正则表达式，符合匹配的内容都不监视 
+  full_bin = "" # 完整的启动命令，可以设置环境变量
+  include_dir = [] # 需要监视的目录
+  include_ext = ["go", "tpl", "tmpl", "html"] # 需要监视的文件后缀
+  include_file = [] # 需要监视的文件
+  kill_delay = 2000 # 单位毫秒，发送终止信号后，等待进程自行退出的最大时间 
+  log = "build-errors.log"
+  send_interrupt = false # 是否发送中断信号
+  stop_on_error = false # 出错时是否停止运行
+
+[color]
+  build = "yellow" # 构建过程中日志的颜色
+  main = "magenta" # air 主程序日志颜色
+  runner = "green" # 程序运行日志颜色
+  watcher = "cyan" # 文件监听器日志颜色
+
+[log]
+  time = false # 日志不显示时间
+
+[misc]
+  clean_on_exit = true # 退出air时清理临时文件

@@ -1,0 +1,557 @@
+/* 基础容器样式 */
+.app-container {
+    min-height: 100vh;
+    background-color: #f7fafc;
+    display: flex;
+    flex-direction: column;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+/* 头部样式 */
+.header-container {
+    position: relative;
+}
+
+.header-content {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-title {
+    font-size: 2.25rem;
+    font-weight: bold;
+    color: #2d3748;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+.menu-toggle-btn {
+    padding: 12px;
+    background-color: #4299e1;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: rotate(1deg);
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+.menu-toggle-btn:hover {
+    background-color: rgba(66, 153, 225, 0.8);
+    transform: scale(1.05) rotate(-1deg);
+}
+
+/* 下拉菜单样式 */
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    z-index: 50;
+    margin: 0 24px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    width: 192px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-list li {
+    margin-bottom: 12px;
+}
+
+.menu-list li:last-child {
+    margin-bottom: 0;
+}
+
+.menu-link {
+    display: block;
+    color: #2d3748;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+.menu-link:hover {
+    color: #4299e1;
+}
+
+/* 主内容区域 */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+}
+
+.content-wrapper {
+    max-width: 672px;
+    width: 100%;
+}
+
+/* 英雄区域 */
+.hero-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin: 0;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    transform: rotate(1deg);
+    flex: 1;
+    text-align: center;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #2d3748;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    transform: rotate(-1deg);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+/* Hero菜单样式 */
+.hero-menu {
+    position: relative;
+    z-index: 10;
+}
+
+.hero-menu-btn {
+    width: 48px;
+    height: 48px;
+    background-color: #4299e1;
+    color: white;
+    border: 2px solid #2d3748;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.25rem;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    transition: all 0.3s ease;
+    transform: rotate(2deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-menu-btn:hover {
+    background-color: rgba(66, 153, 225, 0.8);
+    transform: scale(1.1) rotate(-2deg);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.hero-menu-btn-active {
+    background-color: #38a169;
+    transform: scale(1.05) rotate(-3deg);
+}
+
+.hero-menu-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: white;
+    border: 2px solid #2d3748;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    min-width: 160px;
+    animation: slideDown 0.3s ease-out;
+    transform: rotate(-1deg);
+}
+
+.hero-menu-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #2d3748;
+}
+
+.hero-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.hero-menu-list li {
+    margin-bottom: 8px;
+}
+
+.hero-menu-list li:last-child {
+    margin-bottom: 0;
+}
+
+.hero-menu-link {
+    display: block;
+    color: #2d3748;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    transform: rotate(0.5deg);
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.hero-menu-link:hover {
+    background-color: #4299e1;
+    color: white;
+    transform: scale(1.02) rotate(-0.5deg);
+}
+
+/* 表单容器 */
+.form-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 32px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: rotate(1deg);
+    border: 3px solid #2d3748;
+    position: relative;
+}
+
+.form-container::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 2px solid #4a5568;
+    border-radius: 11px;
+    transform: rotate(-2deg);
+    z-index: -1;
+}
+
+.form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* 输入组样式 */
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-label {
+    display: block;
+    font-size: 1.125rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin-bottom: 16px;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+.theme-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #2d3748;
+    border-radius: 8px;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    font-size: 1.125rem;
+    transition: all 0.3s ease;
+    transform: rotate(-0.5deg);
+}
+
+.theme-input:focus {
+    outline: none;
+    border-color: #4299e1;
+    transform: rotate(0.5deg);
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+}
+
+/* 标签容器 */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tag-item {
+    display: inline-block;
+}
+
+.tag-label {
+    cursor: pointer;
+}
+
+.tag-checkbox {
+    display: none;
+}
+
+.tag-span {
+    display: inline-block;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    font-size: 1.125rem;
+    transition: all 0.3s ease;
+    transform: rotate(1deg);
+    border: 2px solid #2d3748;
+}
+
+.tag-span:hover {
+    transform: scale(1.05) rotate(-1deg);
+}
+
+.tag-unselected {
+    background-color: #e2e8f0;
+    color: #2d3748;
+}
+
+.tag-unselected:hover {
+    background-color: #4299e1;
+    color: white;
+}
+
+.tag-selected {
+    background-color: #4299e1;
+    color: white;
+}
+
+/* 按钮容器 */
+.button-container {
+    text-align: center;
+}
+
+.generate-btn {
+    padding: 12px 32px;
+    background-color: #38a169;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.25rem;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    transition: all 0.3s ease;
+    transform: rotate(-1deg);
+    border: 2px solid #2d3748;
+    cursor: pointer;
+}
+
+.generate-btn:hover:not(.generate-btn-disabled) {
+    background-color: rgba(56, 161, 105, 0.9);
+    transform: scale(1.05) rotate(1deg);
+}
+
+.generate-btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 结果容器 */
+.result-container {
+    margin-top: 24px;
+    padding: 24px;
+    background-color: rgba(66, 153, 225, 0.1);
+    border-radius: 8px;
+    border: 2px solid #4299e1;
+}
+
+.result-title {
+    font-size: 1.125rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin-bottom: 16px;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+.titles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.title-item {
+    background-color: white;
+    padding: 16px;
+    border-radius: 8px;
+    border: 2px solid #4299e1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: rotate(0.5deg);
+    position: relative;
+}
+
+.title-item:hover {
+    transform: scale(1.02) rotate(-0.5deg);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title-text {
+    display: block;
+    font-size: 1.125rem;
+    color: #2d3748;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.copy-hint {
+    font-size: 0.875rem;
+    color: #4299e1;
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+}
+
+.info-message {
+    font-size: 1rem;
+    color: #6b7280;              /* 灰色字体 */
+    font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
+    font-style: italic;          /* 斜体 */
+    text-align: center;          /* 居中 */
+}
+
+/* 动画效果 */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 1.875rem;
+    }
+    .hero-title {
+        font-size: 2.25rem;
+    }
+    .hero-subtitle {
+        font-size: 1.125rem;
+    }
+    .hero-section {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+    .hero-menu {
+        align-self: flex-end;
+        margin-top: -40px;
+    }
+    .hero-menu-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    .hero-menu-dropdown {
+        right: -8px;
+        min-width: 140px;
+    }
+    .form-container {
+        padding: 24px;
+    }
+    .tags-container {
+        gap: 8px;
+    }
+    .tag-span {
+        padding: 8px 16px;
+        font-size: 1rem;
+    }
+}
+
+/* 删除按钮样式 */
+.delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background-color: #e53e3e;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+    line-height: 1;
+}
+
+.delete-btn:hover {
+    background-color: #c53030;
+    transform: scale(1.1);
+}
+
+.delete-btn:active {
+    transform: scale(0.95);
+}
+
+/* 右键菜单样式 */
+.context-menu {
+    position: fixed;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.context-menu-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.context-menu-item:hover {
+    background-color: #f7fafc;
+}
+
+.context-menu-item:active {
+    background-color: #edf2f7;
+}
+
+.context-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    background-color: transparent;
+}
+
+/* 调整tag-item的相对定位以支持删除按钮 */
+.tag-item {
+    position: relative;
+}
