@@ -12,10 +12,12 @@ var (
 	// 黑名单模式
 	blackList = map[string]bool{
 		"127.0.0.1": true,
+		"localhost": true,
 	}
 	// 白名单模式
 	whiteList = map[string]bool{
 		"127.0.0.1": true,
+		"localhost": true,
 	}
 )
 

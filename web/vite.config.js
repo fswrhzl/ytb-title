@@ -7,14 +7,15 @@ export default defineConfig({
     server: {
         proxy: {
             "/api": {
-                target: "http://localhost:50000",
+                target: "http://localhost:60000",
                 changeOrigin: true,
-                // secure: false,
+                secure: false,
                 // rewrite: (path) => path.replace(/^\/api/, ""),
             },
         },
     },
     build: {
+        // 构建输出目录
         outDir: "../web/dist",
     },
 });

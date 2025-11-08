@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -45,42 +45,41 @@ func SetupRouter() *gin.Engine {
 	// 使用 IP 限制中间件
 	r.Use(middleware.IPRestrictionMiddleware())
 	// 提供Vue项目的静态资源文件。web路径/assets/会被映射到./web/dist/assets目录下寻找文件
-	r.Static("/assets", "./web/dist/assets")
-	// 提供入口文件。注册一个模板文件，gin会将该方法加载的文件注册成一个模板：index.html，后续可以在路由处理函数中使用c.HTML方法渲染该模板。
-	r.LoadHTMLFiles("./web/dist/index.html")
-	// 生成标题
-	r.POST("/api/generate-title", generateTitle)
-	// 获取所有频道
-	r.GET("/api/channels", getChannels)
-	// 编辑频道
-	r.PUT("/api/channels/:id", updateChannel)
-	// 新增频道
-	r.POST("/api/channels", createChannel)
-	// 删除频道
-	r.DELETE("/api/channels/:id", deleteChannel)
-	// 获取所有标签
-	r.GET("/api/tags", getTags)
-	// 新增标签
-	r.POST("/api/tags", createTag)
-	// 删除标签
-	r.DELETE("/api/tags/:id", deleteTag)
+	// r.Static("/assets", "./web/dist/assets")
+	api := r.Group("/api")
+	{
+		// 生成标题
+		api.POST("/generate-title", generateTitle)
+		// 获取所有频道
+		api.GET("/channels", getChannels)
+		// 编辑频道
+		api.PUT("/channels/:id", updateChannel)
+		// 新增频道
+		api.POST("/channels", createChannel)
+		// 删除频道
+		api.DELETE("/channels/:id", deleteChannel)
+		// 获取所有标签
+		api.GET("/tags", getTags)
+		// 新增标签
+		api.POST("/tags", createTag)
+		// 删除标签
+		api.DELETE("/tags/:id", deleteTag)
+	}
 	// 404 路由
 	// r.NoRoute(func(c *gin.Context) {
 	// 	c.JSON(http.StatusNotFound, gin.H{
 	// 		"message": "404 Not Found",
 	// 	})
 	// })
+
+	// 提供入口文件。注册一个模板文件，gin会将该方法加载的文件注册成一个模板：index.html，后续可以在路由处理函数中使用c.HTML方法渲染该模板。
+	r.LoadHTMLFiles("./web/dist/index.html")
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
-
-		// 判断是否是静态资源请求，如果是则返回 404
-		// 避免 assets 请求被误导到 index.html
-		// 如果以/assets/开头，且路径长度大于8的web路径被误导到这里，返回404
 		if len(path) > 8 && path[:8] == "/assets/" {
 			c.Status(http.StatusNotFound)
 			return
 		}
-		// 否则到达这里的路由全部返回LoadHTMLFiles方法注册的模板文件index.html
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 	return r
@@ -93,7 +92,7 @@ func getChannels(c *gin.Context) {
 		session, _ := sessionStore.Get(c.Request, "channel-session")
 		if tmp, ok := session.Values["channels"]; ok {
 			var channels []db.ChannelResponse
-			json.Unmarshal(tmp.([]byte), &channels)
+			_ = json.Unmarshal(tmp.([]byte), &channels)
 			c.JSON(http.StatusOK, gin.H{
 				"status":   "success",
 				"message":  "获取频道成功",

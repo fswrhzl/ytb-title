@@ -1,11 +1,11 @@
 # 该文件中的相对路径设置都是以该文件所在的目录为起点
 root = "." # 项目根目录
-tmp_dir = "server/tmp" # air存放临时文件的目录
+tmp_dir = "tmp" # air存放临时文件的目录
 
 [build]
-  bin = "server\\tmp\\main.exe" # 编译生成的二进制文件路径
-  cmd = "cd server && go build -o ./tmp/main.exe ." # 编译命令
-  delay = 2000 # 保存延迟（毫秒），代码修改后多久才会触发保存，避免频繁修改导致的频繁保存
+  bin = "tmp\\main.exe" # 编译生成的二进制文件路径
+  cmd = "go build -o ./tmp/main.exe ." # 编译命令
+  delay = 5000 # 保存延迟（毫秒），代码修改后多久才会触发保存，避免频繁修改导致的频繁保存
   exclude_dir = ["web", ".history"] # 不需要监视的目录
   exclude_file = [] # 不需要监视的文件
   exclude_regex = ["_test.go"] # 正则表达式，符合匹配的内容都不监视 
