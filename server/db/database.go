@@ -87,13 +87,13 @@ func WithTransaction(fn func(tx *sql.Tx) error) error {
 	//
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(p) // 重新触发panic
 		}
 	}()
 	//
 	if err := fn(tx); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return fmt.Errorf("事务执行失败：%w", err)
 	}
 	// 提交事务

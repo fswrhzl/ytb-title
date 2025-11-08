@@ -44,8 +44,6 @@ func SetupRouter() *gin.Engine {
 	}
 	// 使用 IP 限制中间件
 	r.Use(middleware.IPRestrictionMiddleware())
-	// 提供Vue项目的静态资源文件。web路径/assets/会被映射到./web/dist/assets目录下寻找文件
-	// r.Static("/assets", "./web/dist/assets")
 	api := r.Group("/api")
 	{
 		// 生成标题
@@ -65,23 +63,6 @@ func SetupRouter() *gin.Engine {
 		// 删除标签
 		api.DELETE("/tags/:id", deleteTag)
 	}
-	// 404 路由
-	// r.NoRoute(func(c *gin.Context) {
-	// 	c.JSON(http.StatusNotFound, gin.H{
-	// 		"message": "404 Not Found",
-	// 	})
-	// })
-
-	// 提供入口文件。注册一个模板文件，gin会将该方法加载的文件注册成一个模板：index.html，后续可以在路由处理函数中使用c.HTML方法渲染该模板。
-	r.LoadHTMLFiles("./web/dist/index.html")
-	r.NoRoute(func(c *gin.Context) {
-		path := c.Request.URL.Path
-		if len(path) > 8 && path[:8] == "/assets/" {
-			c.Status(http.StatusNotFound)
-			return
-		}
-		c.HTML(http.StatusOK, "index.html", nil)
-	})
 	return r
 }
 
