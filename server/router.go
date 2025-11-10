@@ -23,9 +23,6 @@ type (
 	}
 )
 
-// 在此处声明包级变量并初始化会导致空指针错误。因为Go的包级变量会在main函数之前初始化，而在main函数中初始化数据库连接后才拥有数据库实例，才会赋值给channelRepository和tagRepository的db字段。
-// var channelRepository db.ChannelRepository = db.NewChannelRepository()
-// var tagRepository db.TagRepository = db.NewTagRepository()
 var (
 	channelRepository db.ChannelRepository
 	tagRepository     db.TagRepository
