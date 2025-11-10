@@ -30,7 +30,7 @@
     overflow-y: auto;
     font-family: "Comic Neue", cursive, system-ui, -apple-system, sans-serif;
     animation: modalPop 0.3s ease-out;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .modal-container::before {
@@ -252,28 +252,28 @@
         max-width: none;
         width: calc(100% - 32px);
     }
-    
+
     .modal-title {
         font-size: 1.25rem;
     }
-    
+
     .close-btn {
         width: 36px;
         height: 36px;
         font-size: 1rem;
     }
-    
+
     .tag-input {
         font-size: 1rem;
         padding: 10px;
     }
-    
+
     .radio-span {
         padding: 6px 12px;
         font-size: 0.8rem;
         min-width: 70px;
     }
-    
+
     .confirm-btn {
         font-size: 1rem;
         padding: 10px 24px;
