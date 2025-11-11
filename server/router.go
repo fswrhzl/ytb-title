@@ -8,7 +8,8 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"fswrhzl/ytb_title/server/db"
+	// "fswrhzl/ytb_title/server/db"
+	mGorm "fswrhzl/ytb_title/server/gorm"
 	"fswrhzl/ytb_title/server/middleware"
 
 	"github.com/gorilla/sessions"
@@ -24,16 +25,16 @@ type (
 )
 
 var (
-	channelRepository db.ChannelRepository
-	tagRepository     db.TagRepository
+	channelRepository mGorm.ChannelRepository
+	tagRepository     mGorm.TagRepository
 	flushChannel      = true // 是否刷新cookie中的channel数据
 	flushTag          = true // 是否刷新cookie中的tag数据
 	sessionStore      = sessions.NewCookieStore([]byte("ytb_title_20251106"))
 )
 
 func SetupRouter() *gin.Engine {
-	channelRepository = db.NewChannelRepository()
-	tagRepository = db.NewTagRepository()
+	channelRepository = mGorm.NewChannelRepository()
+	tagRepository = mGorm.NewTagRepository()
 	r := gin.Default()
 	err := r.SetTrustedProxies(nil)
 	if err != nil {
@@ -65,11 +66,12 @@ func SetupRouter() *gin.Engine {
 
 // 获取所有频道
 func getChannels(c *gin.Context) {
+	// flushChannel = true
 	// 从session中获取频道数据
 	if !flushChannel {
 		session, _ := sessionStore.Get(c.Request, "channel-session")
 		if tmp, ok := session.Values["channels"]; ok {
-			var channels []db.ChannelResponse
+			var channels []mGorm.ChannelResponse
 			_ = json.Unmarshal(tmp.([]byte), &channels)
 			c.JSON(http.StatusOK, gin.H{
 				"status":   "success",
@@ -98,7 +100,6 @@ func getChannels(c *gin.Context) {
 		fmt.Printf("channels保存频道到session失败：%v\n", err)
 		flushChannel = true
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":   "success",
 		"message":  "获取频道成功",
@@ -108,7 +109,7 @@ func getChannels(c *gin.Context) {
 
 // 新增频道
 func createChannel(c *gin.Context) {
-	var channel db.ChannelCreateRequest
+	var channel mGorm.ChannelCreateRequest
 	if err := c.ShouldBind(&channel); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "error",
@@ -141,7 +142,7 @@ func createChannel(c *gin.Context) {
 
 // 编辑频道
 func updateChannel(c *gin.Context) {
-	var channelUpdateRequest db.ChannelUpdateRequest
+	var channelUpdateRequest mGorm.ChannelUpdateRequest
 	if err := c.ShouldBindJSON(&channelUpdateRequest); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"error":   "参数错误",
@@ -195,12 +196,13 @@ func deleteChannel(c *gin.Context) {
 
 // 获取所有标签
 func getTags(c *gin.Context) {
+	// flushTag = true
 	// 从session中获取标签数据
 	if !flushTag {
 		session, _ := sessionStore.Get(c.Request, "tag-session")
 		if tmp, ok := session.Values["tags"]; ok {
-			var tags []db.TagResponse
-			json.Unmarshal(tmp.([]byte), &tags)
+			var tags []mGorm.TagResponse
+			_ = json.Unmarshal(tmp.([]byte), &tags)
 			c.JSON(http.StatusOK, gin.H{
 				"status":  "success",
 				"message": "获取标签成功",
@@ -227,6 +229,7 @@ func getTags(c *gin.Context) {
 		flushTag = true
 	}
 
+	fmt.Printf("tags: %v+\n", tags)
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "获取标签成功",
@@ -236,7 +239,7 @@ func getTags(c *gin.Context) {
 
 // 新增标签
 func createTag(c *gin.Context) {
-	var tagCreateRequest db.TagCreateRequest
+	var tagCreateRequest mGorm.TagCreateRequest
 	if err := c.ShouldBindJSON(&tagCreateRequest); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "error",
@@ -313,8 +316,8 @@ func generateTitle(c *gin.Context) {
 	// 从session中获取指定的频道下的标签信息
 	var tagIds []int64
 	if tmp, ok := channelSession.Values["channels"]; ok {
-		var channels []db.ChannelResponse
-		json.Unmarshal(tmp.([]byte), &channels)
+		var channels []mGorm.ChannelResponse
+		_ = json.Unmarshal(tmp.([]byte), &channels)
 		for _, channel := range channels {
 			if channel.Id == int64(titleRequest.Channel) {
 				tagIds = channel.Tags
@@ -329,8 +332,8 @@ func generateTitle(c *gin.Context) {
 		needTags := make([]string, 0)
 		tagSession, _ := sessionStore.Get(c.Request, "tag-session")
 		if tmp, ok := tagSession.Values["tags"]; ok {
-			var tags []db.TagResponse
-			json.Unmarshal(tmp.([]byte), &tags)
+			var tags []mGorm.TagResponse
+			_ = json.Unmarshal(tmp.([]byte), &tags)
 			for _, tagId := range tagIds {
 				for _, tag := range tags {
 					if tag.Id == int64(tagId) {

@@ -9,6 +9,7 @@ tmp_dir = "tmp" # air存放临时文件的目录
   exclude_dir = ["web", ".history"] # 不需要监视的目录
   exclude_file = [] # 不需要监视的文件
   exclude_regex = ["_test.go"] # 正则表达式，符合匹配的内容都不监视 
+  exclude_ext = ["txt"]
   full_bin = "" # 完整的启动命令，可以设置环境变量
   include_dir = [] # 需要监视的目录
   include_ext = ["go", "tpl", "tmpl", "html"] # 需要监视的文件后缀

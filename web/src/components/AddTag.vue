@@ -92,6 +92,7 @@ const confirmAdd = () => {
             alert("标签添加成功！");
             // closeModal();
             emit("flushTags");
+            emit("flushChannels");
         })
         .catch((error) => {
             console.error("添加标签失败:", error);

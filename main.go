@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"fswrhzl/ytb_title/server"
-	"fswrhzl/ytb_title/server/db"
+	// "fswrhzl/ytb_title/server/db"
+	mGorm "fswrhzl/ytb_title/server/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -31,10 +32,10 @@ func main() {
 	// 加载环境变量
 	loadEnv()
 	// 初始化数据库
-	if err := db.InitDatabase("server/db/data/ytb_title.db"); err != nil {
+	if err := mGorm.InitDatabase("server/db/data/ytb_title.db"); err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer mGorm.Close()
 	r := server.SetupRouter()
 	// 将嵌入的文件系统根定位到 web/dist/assets，使静态路由 /assets
 	// 直接映射到构建产物的资源目录，并避免暴露其他非资源文件。

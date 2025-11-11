@@ -90,7 +90,7 @@
         <!-- AddChannel 模态框 -->
         <AddChannel v-if="isAddChannelVisible" @close="hideAddChannel" @flushChannels="getChannels" :modalType="channelModalType" :editedChannel="editedChannel" />
         <!-- AddTag 模态框 -->
-        <AddTag v-if="isAddTagVisible" @close="hideAddTag" @flushTags="getTags" />
+        <AddTag v-if="isAddTagVisible" @close="hideAddTag" @flushTags="getTags" @flushChannels="getChannels" />
         <!-- ManageTag 模态框 -->
         <ManageTag v-if="isManageTagVisible" @close="hideEditTag" @flushTags="getTags" />
         <!-- 右键菜单 -->
@@ -228,6 +228,7 @@ const getChannels = () => {
                 alert(response.data.message);
                 return;
             }
+            console.log(response.data);
             availableChannels.value.channels = response.data.channels ?? [];
             availableChannels.value.status = true;
             localStorage.setItem("channels", JSON.stringify(availableChannels.value.channels));
