@@ -66,7 +66,7 @@ func SetupRouter() *gin.Engine {
 
 // 获取所有频道
 func getChannels(c *gin.Context) {
-	// flushChannel = true
+	flushChannel = true
 	// 从session中获取频道数据
 	if !flushChannel {
 		session, _ := sessionStore.Get(c.Request, "channel-session")
@@ -196,7 +196,7 @@ func deleteChannel(c *gin.Context) {
 
 // 获取所有标签
 func getTags(c *gin.Context) {
-	// flushTag = true
+	flushTag = true
 	// 从session中获取标签数据
 	if !flushTag {
 		session, _ := sessionStore.Get(c.Request, "tag-session")
@@ -229,7 +229,6 @@ func getTags(c *gin.Context) {
 		flushTag = true
 	}
 
-	fmt.Printf("tags: %v+\n", tags)
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "获取标签成功",

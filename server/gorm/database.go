@@ -19,7 +19,9 @@ func InitDatabase(dbPath string) error {
 	}
 
 	// 打开数据库连接
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 	if err != nil {
 		return fmt.Errorf("打开数据库失败：%w", err)
 	}

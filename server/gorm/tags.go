@@ -31,40 +31,54 @@ func (tr *tagRepository) CreateTag(tcr *TagCreateRequest) error {
 	var tag Tag = Tag{
 		Name: tcr.Name,
 	}
-	if err := tr.db.Create(&tag).Error; err != nil {
-		log.Printf("创建标签失败: %v", err)
-		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return errors.New("标签名已存在")
+	err := tr.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&tag).Error; err != nil {
+			log.Printf("创建标签失败: %v", err)
+			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+				return errors.New("标签名已存在")
+			}
+			return errors.New("创建标签失败")
 		}
+		fmt.Printf("创建标签成功: %v", tag)
+		// 新增标签与频道的关联关系
+		for _, channelId := range tcr.Channels {
+			ctLink := ChannelTag{
+				ChannelId: channelId,
+				TagId:     tag.Id,
+			}
+			if err := tx.Create(&ctLink).Error; err != nil {
+				log.Printf("为标签设置关联频道失败: %v", err)
+				return errors.New("为标签设置关联频道失败")
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Printf("创建标签时，开启事务失败：%v", err.Error())
 		return errors.New("创建标签失败")
 	}
-	fmt.Printf("创建标签成功: %v", tag)
-	// 新增标签与频道的关联关系
-	for _, channelId := range tcr.Channels {
-		ctLink := ChannelTag{
-			ChannelId: channelId,
-			TagId:     tag.Id,
-		}
-		if err := tr.db.Create(&ctLink).Error; err != nil {
-			log.Printf("为标签设置关联频道失败: %v", err)
-			return errors.New("为标签设置关联频道失败")
-		}
-	}
-
 	return nil
 }
 
 func (tr *tagRepository) DeleteTag(id int) error {
-	err := tr.db.Delete(&Tag{}, id).Error
-	if err != nil {
-		log.Printf("删除标签失败: %v", err)
-		return errors.New("删除标签失败")
-	}
+	err := tr.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Delete(&Tag{}, id).Error
+		if err != nil {
+			log.Printf("删除标签失败: %v", err)
+			return errors.New("删除标签失败")
+		}
 
-	err = tr.db.Delete(&ChannelTag{}, "tag_id = ?", id).Error
+		err = tx.Delete(&ChannelTag{}, "tag_id = ?", id).Error
+		if err != nil {
+			log.Printf("删除标签与频道关联关系失败: %v", err)
+			return errors.New("删除标签与频道关联关系失败")
+		}
+		return nil
+	})
 	if err != nil {
-		log.Printf("删除标签与频道关联关系失败: %v", err)
-		return errors.New("删除标签与频道关联关系失败")
+		log.Printf("删除标签时，开启事务失败：%v", err.Error())
+		return errors.New("删除标签失败")
 	}
 	return nil
 }

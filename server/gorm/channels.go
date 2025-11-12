@@ -77,57 +77,78 @@ func (r *channelRepository) GetAllChannels() ([]*ChannelResponse, error) {
 
 func (r *channelRepository) CreateChannel(ccr *ChannelCreateRequest) error {
 	var channel Channel = Channel{Name: ccr.Name}
-	result := r.db.Create(&channel)
-	if result.Error != nil {
-		log.Printf("插入频道失败：%v", result.Error)
-		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
-			return errors.New("频道名称已存在")
-		}
-		return errors.New("插入频道失败")
-	}
-	for _, tagId := range ccr.Tags {
-		result := r.db.Create(&ChannelTag{ChannelId: channel.Id, TagId: tagId})
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Create(&channel)
 		if result.Error != nil {
-			log.Printf("插入频道标签失败：%v", result.Error)
-			return errors.New("插入频道标签失败")
+			log.Printf("新增频道失败：%v", result.Error)
+			if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
+				return errors.New("频道名称已存在")
+			}
+			return errors.New("新增频道失败")
 		}
+		for _, tagId := range ccr.Tags {
+			result := tx.Create(&ChannelTag{ChannelId: channel.Id, TagId: tagId})
+			if result.Error != nil {
+				log.Printf("插入频道标签失败：%v", result.Error)
+				return errors.New("新增频道标签失败")
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("创建频道时，开启事务失败：%v", err.Error())
+		return errors.New("新增频道失败")
 	}
 	return nil
 }
 
 func (r *channelRepository) UpdateChannel(cur *ChannelUpdateRequest) error {
 	var channel Channel = Channel{Id: cur.Id, Name: cur.Name}
-	// Save方法默认使用id作为条件，更新其他字段
-	result := r.db.Save(&channel)
-	if result.Error != nil {
-		log.Printf("更新频道失败：%v", result.Error)
-		return errors.New("更新频道失败")
-	}
-	result = r.db.Delete(&ChannelTag{}, "channel_id = ?", cur.Id)
-	if result.Error != nil {
-		log.Printf("删除频道标签失败：%v", result.Error)
-		return errors.New("删除频道标签失败")
-	}
-	for _, tagId := range cur.Tags {
-		result := r.db.Create(&ChannelTag{ChannelId: cur.Id, TagId: tagId})
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// Save方法默认使用id作为条件，更新其他字段
+		result := tx.Save(&channel)
 		if result.Error != nil {
-			log.Printf("插入频道标签失败：%v", result.Error)
-			return errors.New("插入频道标签失败")
+			log.Printf("更新频道失败：%v", result.Error)
+			return errors.New("更新频道失败")
 		}
+		result = tx.Delete(&ChannelTag{}, "channel_id = ?", cur.Id)
+		if result.Error != nil {
+			log.Printf("删除频道标签失败：%v", result.Error)
+			return errors.New("删除频道标签失败")
+		}
+		for _, tagId := range cur.Tags {
+			result := tx.Create(&ChannelTag{ChannelId: cur.Id, TagId: tagId})
+			if result.Error != nil {
+				log.Printf("插入频道标签失败：%v", result.Error)
+				return errors.New("插入频道标签失败")
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("更新频道时，开启事务失败：%v", err.Error())
+		return errors.New("更新频道失败")
 	}
 	return nil
 }
 
 func (r *channelRepository) DeleteChannel(id int) error {
-	result := r.db.Delete(&Channel{}, id)
-	if result.Error != nil {
-		log.Printf("删除频道失败：%v", result.Error)
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Delete(&Channel{}, id)
+		if result.Error != nil {
+			log.Printf("删除频道失败：%v", result.Error)
+			return errors.New("删除频道失败")
+		}
+		result = tx.Delete(&ChannelTag{}, "channel_id = ?", id)
+		if result.Error != nil {
+			log.Printf("删除频道标签失败：%v", result.Error)
+			return errors.New("删除频道标签失败")
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("删除频道时，开启事务失败：%v", err.Error())
 		return errors.New("删除频道失败")
-	}
-	result = r.db.Delete(&ChannelTag{}, "channel_id = ?", id)
-	if result.Error != nil {
-		log.Printf("删除频道标签失败：%v", result.Error)
-		return errors.New("删除频道标签失败")
 	}
 	return nil
 }
