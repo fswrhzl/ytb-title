@@ -29,6 +29,7 @@ var webFiles embed.FS
 var envFile embed.FS
 
 func main() {
+	gin.SetMode(gin.DebugMode)
 	// 加载环境变量
 	loadEnv()
 	// 初始化数据库

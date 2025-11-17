@@ -6,13 +6,13 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 	"unicode/utf8"
 
 	// "fswrhzl/ytb_title/server/db"
+	"fswrhzl/ytb_title/server/cache"
 	mGorm "fswrhzl/ytb_title/server/gorm"
 	"fswrhzl/ytb_title/server/middleware"
-
-	"github.com/gorilla/sessions"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,9 +27,10 @@ type (
 var (
 	channelRepository mGorm.ChannelRepository
 	tagRepository     mGorm.TagRepository
-	flushChannel      = true // 是否刷新cookie中的channel数据
-	flushTag          = true // 是否刷新cookie中的tag数据
-	sessionStore      = sessions.NewCookieStore([]byte("ytb_title_20251106"))
+	// flushChannel      = true // 是否刷新session中的channel数据
+	// flushTag          = true // 是否刷新session中的tag数据
+	// sessionStore      = sessions.NewCookieStore([]byte("ytb_title_20251106"))
+	localCache = cache.NewLocalCache(10 * time.Minute)
 )
 
 func SetupRouter() *gin.Engine {
@@ -66,20 +67,31 @@ func SetupRouter() *gin.Engine {
 
 // 获取所有频道
 func getChannels(c *gin.Context) {
-	flushChannel = true
-	// 从session中获取频道数据
-	if !flushChannel {
-		session, _ := sessionStore.Get(c.Request, "channel-session")
-		if tmp, ok := session.Values["channels"]; ok {
-			var channels []mGorm.ChannelResponse
-			_ = json.Unmarshal(tmp.([]byte), &channels)
-			c.JSON(http.StatusOK, gin.H{
-				"status":   "success",
-				"message":  "获取频道成功",
-				"channels": channels,
-			})
-			return
-		}
+	// flushChannel = true
+	// // 从session中获取频道数据
+	// if !flushChannel {
+	// 	session, _ := sessionStore.Get(c.Request, "channel-session")
+	// 	if tmp, ok := session.Values["channels"]; ok {
+	// 		var channels []mGorm.ChannelResponse
+	// 		_ = json.Unmarshal(tmp.([]byte), &channels)
+	// 		c.JSON(http.StatusOK, gin.H{
+	// 			"status":   "success",
+	// 			"message":  "获取频道成功",
+	// 			"channels": channels,
+	// 		})
+	// 		return
+	// 	}
+	// }
+	var channels []*mGorm.ChannelResponse
+	if channelsStr, ok := localCache.Get("channels"); ok {
+		fmt.Println("调用channels缓存数据")
+		_ = json.Unmarshal([]byte(channelsStr), &channels)
+		c.JSON(http.StatusOK, gin.H{
+			"status":   "success",
+			"message":  "获取频道成功",
+			"channels": channels,
+		})
+		return
 	}
 
 	channels, err := channelRepository.GetAllChannels()
@@ -91,15 +103,18 @@ func getChannels(c *gin.Context) {
 		})
 		return
 	}
+	// 数据存入缓存
+	channelsStr, _ := json.Marshal(channels)
+	localCache.Set("channels", string(channelsStr), 10*time.Minute)
 	// 将频道数据存储到session中
-	session, _ := sessionStore.Get(c.Request, "channel-session")
-	session.Values["channels"], _ = json.Marshal(channels)
-	flushChannel = false
-	err = session.Save(c.Request, c.Writer)
-	if err != nil {
-		fmt.Printf("channels保存频道到session失败：%v\n", err)
-		flushChannel = true
-	}
+	// session, _ := sessionStore.Get(c.Request, "channel-session")
+	// session.Values["channels"], _ = json.Marshal(channels)
+	// flushChannel = false
+	// err = session.Save(c.Request, c.Writer)
+	// if err != nil {
+	// 	fmt.Printf("channels保存频道到session失败：%v\n", err)
+	// 	flushChannel = true
+	// }
 	c.JSON(http.StatusOK, gin.H{
 		"status":   "success",
 		"message":  "获取频道成功",
@@ -133,7 +148,8 @@ func createChannel(c *gin.Context) {
 		return
 	}
 	// 刷新channel数据
-	flushChannel = true
+	// flushChannel = true
+	localCache.Delete("channels")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "频道创建成功",
@@ -165,7 +181,8 @@ func updateChannel(c *gin.Context) {
 		return
 	}
 	// 刷新channel数据
-	flushChannel = true
+	// flushChannel = true
+	localCache.Delete("channels")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "频道修改成功",
@@ -187,7 +204,8 @@ func deleteChannel(c *gin.Context) {
 		})
 	}
 	// 刷新channel数据
-	flushChannel = true
+	// flushChannel = true
+	localCache.Delete("channels")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "频道删除成功",
@@ -196,20 +214,32 @@ func deleteChannel(c *gin.Context) {
 
 // 获取所有标签
 func getTags(c *gin.Context) {
-	flushTag = true
-	// 从session中获取标签数据
-	if !flushTag {
-		session, _ := sessionStore.Get(c.Request, "tag-session")
-		if tmp, ok := session.Values["tags"]; ok {
-			var tags []mGorm.TagResponse
-			_ = json.Unmarshal(tmp.([]byte), &tags)
-			c.JSON(http.StatusOK, gin.H{
-				"status":  "success",
-				"message": "获取标签成功",
-				"tags":    tags,
-			})
-			return
-		}
+	// flushTag = true
+	// // 从session中获取标签数据
+	// if !flushTag {
+	// 	session, _ := sessionStore.Get(c.Request, "tag-session")
+	// 	if tmp, ok := session.Values["tags"]; ok {
+	// 		var tags []mGorm.TagResponse
+	// 		_ = json.Unmarshal(tmp.([]byte), &tags)
+	// 		c.JSON(http.StatusOK, gin.H{
+	// 			"status":  "success",
+	// 			"message": "获取标签成功",
+	// 			"tags":    tags,
+	// 		})
+	// 		return
+	// 	}
+	// }
+	// 从缓存读取数据
+	var tags []*mGorm.TagResponse
+	if tagsStr, ok := localCache.Get("tags"); ok {
+		fmt.Println("调用channels缓存数据")
+		_ = json.Unmarshal([]byte(tagsStr), &tags)
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "获取标签成功",
+			"tags":    tags,
+		})
+		return
 	}
 
 	tags, err := tagRepository.ListTags()
@@ -220,14 +250,18 @@ func getTags(c *gin.Context) {
 		})
 		return
 	}
-	// 将标签数据存储到session中
-	session, _ := sessionStore.Get(c.Request, "tag-session")
-	session.Values["tags"], _ = json.Marshal(tags)
-	flushTag = false
-	err = session.Save(c.Request, c.Writer)
-	if err != nil {
-		flushTag = true
-	}
+	// 数据存入缓存
+	tagsStr, _ := json.Marshal(tags)
+	localCache.Set("tags", string(tagsStr), 10*time.Minute)
+
+	// // 将标签数据存储到session中
+	// session, _ := sessionStore.Get(c.Request, "tag-session")
+	// session.Values["tags"], _ = json.Marshal(tags)
+	// flushTag = false
+	// err = session.Save(c.Request, c.Writer)
+	// if err != nil {
+	// 	flushTag = true
+	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
@@ -264,7 +298,8 @@ func createTag(c *gin.Context) {
 		return
 	}
 	// 刷新tag数据
-	flushTag = true
+	// flushTag = true
+	localCache.Delete("tags")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "标签创建成功",
@@ -287,7 +322,8 @@ func deleteTag(c *gin.Context) {
 		return
 	}
 	// 刷新tag数据
-	flushTag = true
+	// flushTag = true
+	localCache.Delete("tags")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "标签删除成功",
@@ -311,36 +347,85 @@ func generateTitle(c *gin.Context) {
 		})
 		return
 	}
-	channelSession, _ := sessionStore.Get(c.Request, "channel-session")
-	// 从session中获取指定的频道下的标签信息
 	var tagIds []int64
-	if tmp, ok := channelSession.Values["channels"]; ok {
-		var channels []mGorm.ChannelResponse
-		_ = json.Unmarshal(tmp.([]byte), &channels)
-		for _, channel := range channels {
-			if channel.Id == int64(titleRequest.Channel) {
-				tagIds = channel.Tags
-				break
-			}
+	// channelSession, _ := sessionStore.Get(c.Request, "channel-session")
+	// // 从session中获取指定的频道下的标签信息
+	// if tmp, ok := channelSession.Values["channels"]; ok {
+	// 	var channels []mGorm.ChannelResponse
+	// 	_ = json.Unmarshal(tmp.([]byte), &channels)
+	// 	for _, channel := range channels {
+	// 		if channel.Id == int64(titleRequest.Channel) {
+	// 			tagIds = channel.Tags
+	// 			break
+	// 		}
+	// 	}
+	// }
+	var channels []*mGorm.ChannelResponse
+	channelsCache, ok := localCache.Get("channels")
+	if !ok {
+		channels, err := channelRepository.GetAllChannels()
+		if err != nil {
+			fmt.Printf("获取频道失败：%v\n", err)
+			c.JSON(http.StatusOK, gin.H{
+				"status":  "error",
+				"message": "无法获取频道信息",
+			})
+			return
+		}
+		channelsStr, _ := json.Marshal(channels)
+		localCache.Set("channels", string(channelsStr), 10*time.Minute)
+	} else {
+		fmt.Println("调用channels缓存数据")
+		_ = json.Unmarshal([]byte(channelsCache), &channels)
+	}
+	for _, channel := range channels {
+		if channel.Id == int64(titleRequest.Channel) {
+			tagIds = channel.Tags
+			break
 		}
 	}
-	fmt.Printf("tagIds: %v\n", tagIds)
 	var finalTitle string = titleRequest.Theme
 	if len(tagIds) > 0 {
 		// 从session中获取标签名称
 		needTags := make([]string, 0)
-		tagSession, _ := sessionStore.Get(c.Request, "tag-session")
-		if tmp, ok := tagSession.Values["tags"]; ok {
-			var tags []mGorm.TagResponse
-			_ = json.Unmarshal(tmp.([]byte), &tags)
-			for _, tagId := range tagIds {
-				for _, tag := range tags {
-					if tag.Id == int64(tagId) {
-						needTags = append(needTags, tag.Name)
-					}
+		// tagSession, _ := sessionStore.Get(c.Request, "tag-session")
+		// if tmp, ok := tagSession.Values["tags"]; ok {
+		// 	var tags []mGorm.TagResponse
+		// 	_ = json.Unmarshal(tmp.([]byte), &tags)
+		// 	for _, tagId := range tagIds {
+		// 		for _, tag := range tags {
+		// 			if tag.Id == int64(tagId) {
+		// 				needTags = append(needTags, tag.Name)
+		// 			}
+		// 		}
+		// 	}
+		// }
+		var tags []*mGorm.TagResponse
+		tagCache, ok := localCache.Get("tags")
+		if !ok {
+			tags, err := tagRepository.ListTags()
+			if err != nil {
+				fmt.Printf("获取标签失败：%v\n", err)
+				c.JSON(http.StatusOK, gin.H{
+					"status":  "error",
+					"message": "无法获取标签信息",
+				})
+				return
+			}
+			tagsStr, _ := json.Marshal(tags)
+			localCache.Set("tags", string(tagsStr), 10*time.Minute)
+		} else {
+			fmt.Println("调用tags缓存数据")
+			_ = json.Unmarshal([]byte(tagCache), &tags)
+		}
+		for _, tagId := range tagIds {
+			for _, tag := range tags {
+				if tag.Id == int64(tagId) {
+					needTags = append(needTags, tag.Name)
 				}
 			}
 		}
+
 		for utf8.RuneCountInString(finalTitle) < 100 {
 			// 从needTags中随机选择一个标签
 			tmpIndex := rand.Intn(len(needTags))

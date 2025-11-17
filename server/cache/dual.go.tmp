@@ -1,0 +1,37 @@
+// 组合本地缓存和Redis缓存
+package cache
+
+import "time"
+
+type DualCache struct {
+	local *LocalCache
+	redis *RedisCache
+}
+
+func NewDualCache(local *LocalCache, redis *RedisCache) *DualCache {
+	return &DualCache{
+		local: local,
+		redis: redis,
+	}
+}
+
+func (d *DualCache) Get(key string) (string, bool) {
+	if val, ok := d.local.Get(key); ok {
+		return val, true
+	}
+	if val, ok := d.redis.Get(key); ok {
+		d.local.Set(key, val, 5*time.Minute) // 缓存到本地
+		return val, true
+	}
+	return "", false
+}
+
+func (d *DualCache) Set(key string, val string, expire time.Duration) {
+	d.local.Set(key, val, expire)
+	d.redis.Set(key, val, expire)
+}
+
+func (d *DualCache) Delete(key string) {
+	d.local.Delete(key)
+	d.redis.Delete(key)
+}
