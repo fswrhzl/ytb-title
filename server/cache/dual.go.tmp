@@ -1,11 +1,17 @@
 // 组合本地缓存和Redis缓存
 package cache
 
-import "time"
+import (
+	"sync"
+	"time"
+
+	"golang.org/x/sync/singleflight"
+)
 
 type DualCache struct {
 	local *LocalCache
 	redis *RedisCache
+	group singleflight.Group
 }
 
 func NewDualCache(local *LocalCache, redis *RedisCache) *DualCache {
@@ -15,15 +21,47 @@ func NewDualCache(local *LocalCache, redis *RedisCache) *DualCache {
 	}
 }
 
-func (d *DualCache) Get(key string) (string, bool) {
+//	func (d *DualCache) Get(key string) (string, bool) {
+//		if val, ok := d.local.Get(key); ok {
+//			return val, true
+//		}
+//		if val, ok := d.redis.Get(key); ok {
+//			d.local.Set(key, val, 5*time.Minute) // 缓存到本地
+//			return val, true
+//		}
+//		return "", false
+//	}
+//
+// 修改Get方法，在缓存没有命中时调用loader函数从数据库获取数据。loader函数是数据库查询函数。
+func (d *DualCache) GetWithLoader(key string, ttl time.Duration, loader func() (string, error)) (string, error) {
+	// 先从本地缓存获取数据
 	if val, ok := d.local.Get(key); ok {
-		return val, true
+		return val, nil
 	}
+	// 本地缓存没有数据时，从Redis获取数据。如果获取到，则存入本地缓存
 	if val, ok := d.redis.Get(key); ok {
-		d.local.Set(key, val, 5*time.Minute) // 缓存到本地
-		return val, true
+		d.local.Set(key, val, ttl) // 缓存到本地
+		return val, nil
 	}
-	return "", false
+	// Redis中没有数据时，从数据库获取数据。添加防击穿机制，合并多个对同一key的请求。
+	val, err, _ := d.group.Do(key, func() (any, error) {
+		if v, ok := d.redis.Get(key); ok {
+			d.local.Set(key, v, ttl) // 缓存到本地
+			return v, nil
+		}
+		// 调用loader函数从数据库获取数据。loader函数是一个自定义的函数，包含数据库查询逻辑。
+		data, err := loader()
+		if err != nil {
+			return "", err
+		}
+		d.local.Set(key, data, ttl) // 缓存到本地
+		return data, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+	return val.(string), nil
 }
 
 func (d *DualCache) Set(key string, val string, expire time.Duration) {

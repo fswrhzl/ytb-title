@@ -4,6 +4,8 @@ package cache
 import (
 	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
 
 // 缓存数据的结构，包括值、有效期
@@ -13,9 +15,15 @@ type localItem struct {
 }
 
 // 本地缓存数据处理器，包括存储、读取、删除、过期回收
+//
+//	type LocalCache struct {
+//		mu    sync.Map      // 缓存数据存储，键为字符串，值为 localItem
+//		gcInt time.Duration // 垃圾回收间隔，单位：秒
+//	}
 type LocalCache struct {
 	mu    sync.Map      // 缓存数据存储，键为字符串，值为 localItem
 	gcInt time.Duration // 垃圾回收间隔，单位：秒
+	group singleflight.Group
 }
 
 // 创建一个新的本地缓存处理器
@@ -36,6 +44,24 @@ func (c *LocalCache) Get(key string) (string, bool) {
 		c.mu.Delete(key)
 	}
 	return "", false
+}
+
+func (c *LocalCache) GetWithLoader(key string, ttl time.Duration, loader func() (string, error)) (string, error) {
+	if val, ok := c.Get(key); ok {
+		return val, nil
+	}
+	val, err, _ := c.group.Do(key, func() (any, error) {
+		data, err := loader()
+		if err != nil {
+			return "", err
+		}
+		return data, nil
+	})
+	if err != nil {
+		return "", err
+	}
+	c.Set(key, val.(string), ttl)
+	return val.(string), nil
 }
 
 func (c *LocalCache) Set(key string, value string, ttl time.Duration) {
