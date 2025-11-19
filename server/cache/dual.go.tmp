@@ -2,7 +2,6 @@
 package cache
 
 import (
-	"sync"
 	"time"
 
 	"golang.org/x/sync/singleflight"
@@ -22,7 +21,7 @@ func NewDualCache(local *LocalCache, redis *RedisCache) *DualCache {
 }
 
 //	func (d *DualCache) Get(key string) (string, bool) {
-//		if val, ok := d.local.Get(key); ok {
+//		if val, _, ok := d.local.Get(key); ok {
 //			return val, true
 //		}
 //		if val, ok := d.redis.Get(key); ok {
@@ -35,7 +34,7 @@ func NewDualCache(local *LocalCache, redis *RedisCache) *DualCache {
 // 修改Get方法，在缓存没有命中时调用loader函数从数据库获取数据。loader函数是数据库查询函数。
 func (d *DualCache) GetWithLoader(key string, ttl time.Duration, loader func() (string, error)) (string, error) {
 	// 先从本地缓存获取数据
-	if val, ok := d.local.Get(key); ok {
+	if val, _, ok := d.local.Get(key); ok {
 		return val, nil
 	}
 	// 本地缓存没有数据时，从Redis获取数据。如果获取到，则存入本地缓存
@@ -54,7 +53,7 @@ func (d *DualCache) GetWithLoader(key string, ttl time.Duration, loader func() (
 		if err != nil {
 			return "", err
 		}
-		d.local.Set(key, data, ttl) // 缓存到本地
+		d.Set(key, data, ttl) // 缓存到本地和Redis
 		return data, nil
 	})
 
@@ -62,6 +61,27 @@ func (d *DualCache) GetWithLoader(key string, ttl time.Duration, loader func() (
 		return "", err
 	}
 	return val.(string), nil
+}
+
+// 带自动刷新机制的缓存读取方法
+func (d *DualCache) GetWithAutoRefresh(key string, ttl time.Duration, loader func() (string, error)) (string, error) {
+	// 在本地命中缓存时就开启自动刷新机制。
+	val, expiration, ok := d.local.Get(key)
+	if ok {
+		// 开启后台进程，刷新缓存
+		go func() {
+			// 剩余有效期小于1分钟时，刷新缓存
+			if (expiration - time.Now().UnixNano()) <= time.Duration(1*time.Minute).Nanoseconds() {
+				// 从数据库重新获取数据，并存入缓存
+				if newVal, err := loader(); err == nil {
+					d.Set(key, newVal, ttl)
+				}
+			}
+		}()
+		return val, nil
+	}
+	// 本地缓存未命中则调用防击穿方法，从Redis或数据库中获取数据
+	return d.GetWithLoader(key, ttl, loader)
 }
 
 func (d *DualCache) Set(key string, val string, expire time.Duration) {

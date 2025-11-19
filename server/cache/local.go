@@ -2,6 +2,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -35,19 +36,20 @@ func NewLocalCache(gcInt time.Duration) *LocalCache {
 	return c
 }
 
-func (c *LocalCache) Get(key string) (string, bool) {
+func (c *LocalCache) Get(key string) (string, int64, bool) {
 	if v, ok := c.mu.Load(key); ok {
 		item := v.(localItem)
 		if time.Now().UnixNano() < item.expiration {
-			return item.value, true
+			return item.value, item.expiration, true
 		}
 		c.mu.Delete(key)
 	}
-	return "", false
+	return "", 0, false
 }
 
 func (c *LocalCache) GetWithLoader(key string, ttl time.Duration, loader func() (string, error)) (string, error) {
-	if val, ok := c.Get(key); ok {
+	if val, _, ok := c.Get(key); ok {
+		fmt.Printf("从缓存获取%s数据\n", key)
 		return val, nil
 	}
 	val, err, _ := c.group.Do(key, func() (any, error) {
@@ -62,6 +64,25 @@ func (c *LocalCache) GetWithLoader(key string, ttl time.Duration, loader func() 
 	}
 	c.Set(key, val.(string), ttl)
 	return val.(string), nil
+}
+
+func (c *LocalCache) GetWithAutoRefresh(key string, ttl time.Duration, loader func() (string, error)) (string, error) {
+	if val, expiration, ok := c.Get(key); ok {
+		go func() {
+			// 剩余有效期少于1/10时自动刷新
+			if expiration-time.Now().UnixNano() < ttl.Nanoseconds()/10 {
+				data, err := loader()
+				if err != nil {
+					return
+				}
+				c.Set(key, data, ttl)
+			}
+		}()
+		fmt.Printf("从缓存获取%s数据\n", key)
+		return val, nil
+	}
+
+	return c.GetWithLoader(key, ttl, loader)
 }
 
 func (c *LocalCache) Set(key string, value string, ttl time.Duration) {

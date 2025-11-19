@@ -65,7 +65,7 @@ func SetupRouter() *gin.Engine {
 // 获取所有频道
 func getChannels(c *gin.Context) {
 	var channels []*mGorm.ChannelResponse
-	channelsStr, err := localCache.GetWithLoader("channels", 10*time.Minute, func() (string, error) {
+	channelsStr, err := localCache.GetWithAutoRefresh("channels", 10*time.Minute, func() (string, error) {
 		fmt.Println("本地缓存未发现channels数据，调用数据库获取channels数据")
 		channelsTmp, err := channelRepository.GetAllChannels()
 		if err != nil {
@@ -182,7 +182,7 @@ func deleteChannel(c *gin.Context) {
 func getTags(c *gin.Context) {
 	// 从缓存读取数据
 	var tags []*mGorm.TagResponse
-	tagsStr, err := localCache.GetWithLoader("tags", 10*time.Minute, func() (string, error) {
+	tagsStr, err := localCache.GetWithAutoRefresh("tags", 10*time.Minute, func() (string, error) {
 		fmt.Println("本地缓存未发现tags数据，调用数据库获取tags数据")
 		tagsTmp, err := tagRepository.ListTags()
 		if err != nil {
@@ -288,7 +288,7 @@ func generateTitle(c *gin.Context) {
 	}
 	var tagIds []int64
 	var channels []*mGorm.ChannelResponse
-	channelsStr, err := localCache.GetWithLoader("channels", 10*time.Minute, func() (string, error) {
+	channelsStr, err := localCache.GetWithAutoRefresh("channels", 10*time.Minute, func() (string, error) {
 		fmt.Println("本地缓存未发现channels数据，调用数据库获取channels数据")
 		channelsTmp, err := channelRepository.GetAllChannels()
 		if err != nil {
@@ -319,7 +319,7 @@ func generateTitle(c *gin.Context) {
 	if len(tagIds) > 0 {
 		needTags := make([]string, 0)
 		var tags []*mGorm.TagResponse
-		tagsStr, err := localCache.GetWithLoader("tags", 10*time.Minute, func() (string, error) {
+		tagsStr, err := localCache.GetWithAutoRefresh("tags", 10*time.Minute, func() (string, error) {
 			fmt.Println("本地缓存未发现tags数据，调用数据库获取tags数据")
 			tagsTmp, err := tagRepository.ListTags()
 			if err != nil {
