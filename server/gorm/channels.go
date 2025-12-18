@@ -33,7 +33,7 @@ func NewChannelRepository() ChannelRepository {
 func (r *channelRepository) GetAllChannels() ([]*ChannelResponse, error) {
 	var channels []*ChannelResponse
 	rows, err := r.db.Table("channels AS c").
-		Select("c.id, c.name, GROUP_CONCAT(ct.tag_id, ',') AS tagListStr").
+		Select("c.id, c.name, c.default_title, GROUP_CONCAT(ct.tag_id, ',') AS tagListStr").
 		Joins(" left join channel_tag AS ct on c.id = ct.channel_id").
 		Group("c.id").
 		Rows()
@@ -46,15 +46,25 @@ func (r *channelRepository) GetAllChannels() ([]*ChannelResponse, error) {
 		var channel ChannelResponse
 		// 数据库中的null不对应任何go中的数据类型，需要特殊处理，使用sql.NullString类型接收
 		var tagListStrTmp sql.NullString
-		if err := rows.Scan(&channel.Id, &channel.Name, &tagListStrTmp); err != nil {
+		var defaultTitleTmp sql.NullString
+		if err := rows.Scan(&channel.Id, &channel.Name, &defaultTitleTmp, &tagListStrTmp); err != nil {
 			return nil, errors.New("数据解析失败")
 		}
+
+		if defaultTitleTmp.Valid {
+			channel.DefaultTitle = defaultTitleTmp.String
+		} else {
+			channel.DefaultTitle = ""
+		}
+
 		var tagListStr string
 		if tagListStrTmp.Valid { // 如果不为null
 			tagListStr = tagListStrTmp.String
 		} else { // 如果为null，转换为空字符串
 			tagListStr = ""
 		}
+
+		// 切割字符串，循环获取tag id
 		for len(tagListStr) > 0 {
 			tagId, rest, found := strings.Cut(tagListStr, ",")
 			tagIdInt, err := strconv.Atoi(tagId)
@@ -76,7 +86,8 @@ func (r *channelRepository) GetAllChannels() ([]*ChannelResponse, error) {
 }
 
 func (r *channelRepository) CreateChannel(ccr *ChannelCreateRequest) error {
-	var channel Channel = Channel{Name: ccr.Name}
+	var channel Channel = Channel{Name: ccr.Name, DefaultTitle: ccr.DefaultTitle}
+	// 引入事务
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		result := tx.Create(&channel)
 		if result.Error != nil {
@@ -103,7 +114,8 @@ func (r *channelRepository) CreateChannel(ccr *ChannelCreateRequest) error {
 }
 
 func (r *channelRepository) UpdateChannel(cur *ChannelUpdateRequest) error {
-	var channel Channel = Channel{Id: cur.Id, Name: cur.Name}
+	var channel Channel = Channel{Id: cur.Id, Name: cur.Name, DefaultTitle: cur.DefaultTitle}
+	// 引入事务
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// Save方法默认使用id作为条件，更新其他字段
 		result := tx.Save(&channel)

@@ -1,11 +1,15 @@
 /.history
 /.vscode
+/server/cache/dual.go.tmp
+/server/cache/redis.go.tmp
+/tmp/*
 /web/dist
 /web/data
 /web/.vscode
 /web/.gitignore
 /web/.prettierrc
 /web/README.md
+/web/.editorconfig
 API 列表.txt
 todo.txt
 actions.txt

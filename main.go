@@ -59,6 +59,7 @@ func main() {
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
 	})
+	// TODO：将Run方法放到主协程，将后续代码放到子协程中
 	// gin启动后会阻塞Run方法后的代码，放到子协程中启动。
 	go func() {
 		if err := r.Run(":50000"); err != nil {

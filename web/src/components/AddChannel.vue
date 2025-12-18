@@ -22,6 +22,11 @@
                     </div>
 
                     <div class="input-group">
+                        <label class="input-label">📝 默认标题：</label>
+                        <input v-model="defaultTitle" type="text" placeholder="📝 请输入默认标题..." class="channel-input" @keyup.enter="confirmAdd" @keyup.esc="closeModal" />
+                    </div>
+
+                    <div class="input-group">
                         <label class="input-label">🎯 选择标签（多选）：</label>
                         <div v-if="availableTags.length > 0" class="tags-container">
                             <div v-for="tag in availableTags" :key="tag.name" class="tag-item">
@@ -61,6 +66,7 @@ import axios from "axios";
 
 const props = defineProps(["modalType", "editedChannel"]);
 const channelName = ref(props.modalType === "add" ? "" : props.editedChannel.name);
+const defaultTitle = ref(props.modalType === "add" ? "" : (props.editedChannel.default_title || ""));
 const isCloseHovered = ref(false);
 const selectedTags = ref(props.modalType === "add" ? [] : (props.editedChannel.tags ?? []));
 const availableTags = ref(localStorage.getItem("tags") ? JSON.parse(localStorage.getItem("tags")) : []);
@@ -79,6 +85,7 @@ const confirmAdd = () => {
     };
     let requestData = {
         name: channelName.value.trim(),
+        default_title: defaultTitle.value.trim(),
         tags: selectedTags.value,
     };
     if (props.modalType === "add") {
@@ -105,6 +112,7 @@ const confirmAdd = () => {
             }
             selectedTags.value = []; // 清空选中标签
             channelName.value = ""; // 清空频道名称输入框
+            defaultTitle.value = ""; // 清空默认标题输入框
             closeModal();
             emit("flushChannels");
         })

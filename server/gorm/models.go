@@ -8,8 +8,9 @@ type Tag struct {
 
 // 频道模型
 type Channel struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
+	Id           int64  `json:"id"`
+	Name         string `json:"name"`
+	DefaultTitle string `json:"default_title"`
 }
 
 // 频道-标签关联模型
@@ -21,7 +22,7 @@ type ChannelTag struct {
 
 // 创建标签请求
 type TagCreateRequest struct {
-	Name      string  `json:"name" required:"true"`
+	Name     string  `json:"name" required:"true"`
 	Channels []int64 `json:"channels" required:"true"`
 }
 
@@ -34,20 +35,23 @@ type TagResponse struct {
 
 // 创建频道请求
 type ChannelCreateRequest struct {
-	Name string  `json:"name" required:"true"`
-	Tags []int64 `json:"tags"`
+	Name         string  `json:"name" required:"true"`
+	Tags         []int64 `json:"tags"`
+	DefaultTitle string  `json:"default_title"`
 }
 
 // 更新频道请求
 type ChannelUpdateRequest struct {
-	Id   int64   `json:"id" required:"true"`
-	Name string  `json:"name" required:"true"`
-	Tags []int64 `json:"tags"`
+	Id           int64   `json:"id" required:"true"`
+	Name         string  `json:"name" required:"true"`
+	Tags         []int64 `json:"tags"`
+	DefaultTitle string  `json:"default_title"`
 }
 
 // 获取频道响应
 type ChannelResponse struct {
-	Id   int64   `json:"id"`
-	Name string  `json:"name"`
-	Tags []int64 `json:"tags"`
-} 
+	Id           int64   `json:"id"`
+	Name         string  `json:"name"`
+	Tags         []int64 `json:"tags"`
+	DefaultTitle string  `json:"default_title"`
+}
