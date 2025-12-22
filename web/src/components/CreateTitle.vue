@@ -41,7 +41,7 @@
                             <div class="tags-container">
                                 <div v-for="channel in availableChannels.channels" :key="channel.id" class="tag-item" @contextmenu.prevent="showContextMenu($event, channel)">
                                     <label class="tag-label">
-                                        <input type="radio" :value="channel.id" v-model="selectedChannel" class="tag-checkbox" />
+                                        <input type="radio" :value="channel.id" v-model="selectedChannel" class="tag-checkbox" @click="handleDefaultTitle($event, channel)" />
                                         <span :class="['tag-span', selectedChannel === channel.id ? 'tag-selected' : 'tag-unselected']">
                                             {{ channel.name }}
                                         </span>
@@ -164,6 +164,13 @@ const showEditTag = () => {
 
 const hideEditTag = () => {
     isManageTagVisible.value = false;
+};
+
+// 点击频道时若未设置标题，则使用默认标题
+const handleDefaultTitle = (e, channel) => {
+    if (e.target.checked && !videoTheme.value.trim() && channel.default_title.trim()) {
+        videoTheme.value = channel.default_title;
+    }
 };
 
 const generateTitle = async () => {
