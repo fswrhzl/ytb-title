@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -18,6 +19,7 @@ import (
 )
 
 type (
+	// 生成标签请求
 	TitleRequest struct {
 		Theme   string `form:"theme" binding:"required" json:"theme"`
 		Channel int    `form:"channel" binding:"required" json:"channel"`
@@ -38,8 +40,12 @@ func SetupRouter() *gin.Engine {
 	if err != nil {
 		panic(err)
 	}
+
+	// 使用日志中间件
+	r.Use(middleware.SlogLogger())
 	// 使用 IP 限制中间件
 	r.Use(middleware.IPRestrictionMiddleware())
+
 	api := r.Group("/api")
 	{
 		// 生成标题
@@ -230,7 +236,10 @@ func createTag(c *gin.Context) {
 		return
 	}
 	// 创建标签
+	// 标签名统一为小写
+	tagCreateRequest.Name = strings.ToLower(tagCreateRequest.Name)
 	if err := tagRepository.CreateTag(&tagCreateRequest); err != nil {
+		fmt.Printf("创建标签失败：%v\n", err)
 		// 关于http.StatusOK状态的使用，能够给出明确提示，且不泄露内部信息的错误，都应该返回http.StatusOK状态码
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "error",
@@ -239,7 +248,6 @@ func createTag(c *gin.Context) {
 		return
 	}
 	// 刷新tag数据
-	// flushTag = true
 	localCache.Delete("tags")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
@@ -348,8 +356,7 @@ func generateTitle(c *gin.Context) {
 				}
 			}
 		}
-
-		for utf8.RuneCountInString(finalTitle) < 100 {
+		for utf8.RuneCountInString(finalTitle) < 100 && len(needTags) > 0 {
 			// 从needTags中随机选择一个标签
 			tmpIndex := rand.Intn(len(needTags))
 			tmp := " #" + needTags[tmpIndex]

@@ -56,7 +56,7 @@ func (tr *tagRepository) CreateTag(tcr *TagCreateRequest) error {
 	})
 	if err != nil {
 		log.Printf("创建标签时，开启事务失败：%v", err.Error())
-		return errors.New("创建标签失败")
+		return err
 	}
 	return nil
 }
