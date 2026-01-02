@@ -1,4 +1,4 @@
-/* Slog 日志中间件：命令行日志 */
+/* 基于slog的http请求日志中间件：记录http请求信息，并输出到CMD */
 package middleware
 
 import (

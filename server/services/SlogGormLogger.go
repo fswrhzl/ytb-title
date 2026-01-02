@@ -1,3 +1,4 @@
+/* 基于slog的gorm日志服务：记录gorm数据库操作日志。该服务需要在初始化gorm时，作为日志记录器传入。*/
 package services
 
 import (

@@ -22,8 +22,8 @@ type ChannelTag struct {
 
 // 创建标签请求
 type TagCreateRequest struct {
-	Name     string  `json:"name" required:"true"`
-	Channels []int64 `json:"channels" required:"true"`
+	Name     string  `json:"name" form:"name" binding:"required"`
+	Channels []int64 `json:"channels" form:"channels" binding:"required"`
 }
 
 // 标签列表响应体
@@ -35,17 +35,17 @@ type TagResponse struct {
 
 // 创建频道请求
 type ChannelCreateRequest struct {
-	Name         string  `json:"name" required:"true"`
-	Tags         []int64 `json:"tags"`
+	Name         string  `json:"name" form:"name" binding:"required"`
+	Tags         []int64 `json:"tags" form:"tags"`
 	DefaultTitle string  `json:"default_title"`
 }
 
 // 更新频道请求
 type ChannelUpdateRequest struct {
-	Id           int64   `json:"id" required:"true"`
-	Name         string  `json:"name" required:"true"`
-	Tags         []int64 `json:"tags"`
-	DefaultTitle string  `json:"default_title"`
+	Id           int64   `json:"id" form:"id" binding:"required"`
+	Name         string  `json:"name" form:"name" binding:"required"`
+	Tags         []int64 `json:"tags" form:"tags"`
+	DefaultTitle string  `json:"default_title" form:"default_title"`
 }
 
 // 获取频道响应

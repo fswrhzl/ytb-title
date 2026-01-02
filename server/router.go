@@ -104,6 +104,7 @@ func getChannels(c *gin.Context) {
 func createChannel(c *gin.Context) {
 	var channel mGorm.ChannelCreateRequest
 	if err := c.ShouldBind(&channel); err != nil {
+		fmt.Printf("绑定请求参数失败：%v\n", err)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "error",
 			"message": "错误的请求参数",
